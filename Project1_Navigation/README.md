@@ -40,8 +40,15 @@ NOTE: YOu cen build your own environment if you want. Check out this repo:  [cli
 ### Dependencies
 
 Python 3.6.  [click here](https://www.python.org/download/releases/3.0/)
+
 Pytorch [click here](https://pytorch.org/)
-    
+
+
+Matplotlib [click here](https://matplotlib.org/)
+
+Numpy [click here](https://numpy.org/)
+
+
 
 ### Instructions
 
