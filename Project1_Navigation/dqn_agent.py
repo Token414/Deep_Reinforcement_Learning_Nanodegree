@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Dec 16 11:49:54 2020
+UDACITY COURSE Deep Reinforcement Learning
 DQN Agent
 @author: Token
 """
@@ -19,11 +20,24 @@ BUFFER_SIZE = int(1e5)  # replay buffer size
 BATCH_SIZE = 64         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR = 5e-4               # learning rate 
+LR = 1e-4               # learning rate 
 UPDATE_EVERY = 4        # how often to update the network
+UPDATE_TARGET_EVERY = 110
+
+
+
+# Check Cuda versions and display GPU
+from torch import cuda
+print(cuda.is_available())
+print(cuda.device_count())
+#print(cuda.get_device_name(cuda.current_device()))
+print()
+
 
 #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cpu") # use cpu
+
+
 class Agent():
     """Interacts with and learns from the environment."""
 
@@ -44,11 +58,14 @@ class Agent():
         self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
         self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
+        
+        
         self.loss = []
         # Replay memory
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
+        self.memory = ReplayBuffer(BUFFER_SIZE, BATCH_SIZE, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
+        self.t_step_target = 0
     
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
@@ -82,39 +99,58 @@ class Agent():
         else:
             return random.choice(np.arange(self.action_size))
 
+               
     def learn(self, experiences, gamma):
-        """Update value parameters using given batch of experience tuples.
-
-        Params
-        ======
-            experiences (Tuple[torch.Variable]): tuple of (s, a, r, s', done) tuples 
-            gamma (float): discount factor
         """
+        In order to calculate the loss (TD-error), we need to calculate 2 values:           
+        ===========
+        1. Target values 
+        2. current Q-values for each state.
         
+        Now, in order to break the correlation between current Q-values and the
+        target Q-values, we require two set of weights. One is called local or
+        online weights that are updated at every UPDATE_ONLINE_EVERY steps while
+        the target weights are updated with the current online weights at
+        UPDATE_TARGET_EVERY steps.
+        
+        """
         states, actions, rewards, next_states, dones = experiences
-
-
-        # Get max predicted Q values (for next states) from target model
-        Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
-        # Compute Q targets for current states 
-        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
-
-        # Get expected Q values from local model
-        Q_expected = self.qnetwork_local(states).gather(1, actions)
-
-        # Compute loss
-        loss = F.mse_loss(Q_expected, Q_targets)
-        print('Loss: ' + str(loss))
         
-        self.loss.append(loss)
-        # Minimize the loss
+        
+        _, greedy_actions = torch.max(self.qnetwork_local(next_states).detach(), dim=1)
+        greedy_actions = torch.unsqueeze(greedy_actions, 1)
+        # we select the action values corresponding to the greedy_actions we selected from
+        # the local/online network
+        
+        q_greedy_targets = self.qnetwork_target(next_states).gather(1, greedy_actions)
+        
+        q_greedy_targets = (1 - dones) * q_greedy_targets
+        q_targets = rewards + gamma * (q_greedy_targets)
+        
+        q_current_est = self.qnetwork_local(states).gather(1, actions)
+        
+        
+        # backpropagation step
         self.optimizer.zero_grad()
+        loss = F.mse_loss(q_targets, q_current_est)
+        
         loss.backward()
         self.optimizer.step()
+        self.loss.append(loss)
+        #print('Loss: ' + str(loss))
+        # -----------------update the target network----------------- #
+        self.t_step_target = (self.t_step_target + 1) % UPDATE_TARGET_EVERY
+        
+        if self.t_step_target == 0:
+#             self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+            self.update_target(self.qnetwork_local, self.qnetwork_target)
+            
 
-
-        # ------------------- update target network ------------------- #
-        self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
+    def update_target(self, online_model, target_model):
+        #print('Update Target!')
+        for target_param, online_param in zip(target_model.parameters(), online_model.parameters()):
+            target_param.data.copy_(online_param.data)
+            
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
@@ -133,7 +169,7 @@ class Agent():
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
 
-    def __init__(self, action_size, buffer_size, batch_size, seed):
+    def __init__(self,  buffer_size, batch_size, seed):
         """Initialize a ReplayBuffer object.
 
         Params
@@ -143,7 +179,7 @@ class ReplayBuffer:
             batch_size (int): size of each training batch
             seed (int): random seed
         """
-        self.action_size = action_size
+        #self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  
         self.batch_size = batch_size
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
