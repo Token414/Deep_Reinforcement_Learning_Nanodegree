@@ -142,7 +142,6 @@ class Agent():
         self.t_step_target = (self.t_step_target + 1) % UPDATE_TARGET_EVERY
         
         if self.t_step_target == 0:
-#             self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
             self.update_target(self.qnetwork_local, self.qnetwork_target)
             
 
@@ -150,20 +149,6 @@ class Agent():
         #print('Update Target!')
         for target_param, online_param in zip(target_model.parameters(), online_model.parameters()):
             target_param.data.copy_(online_param.data)
-            
-
-    def soft_update(self, local_model, target_model, tau):
-        """Soft update model parameters.
-        θ_target = τ*θ_local + (1 - τ)*θ_target
-
-        Params
-        ======
-            local_model (PyTorch model): weights will be copied from
-            target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter 
-        """
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
 
 class ReplayBuffer:
@@ -179,7 +164,7 @@ class ReplayBuffer:
             batch_size (int): size of each training batch
             seed (int): random seed
         """
-        #self.action_size = action_size
+
         self.memory = deque(maxlen=buffer_size)  
         self.batch_size = batch_size
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
@@ -208,3 +193,7 @@ class ReplayBuffer:
     def __len__(self):
         """Return the current size of internal memory."""
         return len(self.memory)
+    
+    
+
+    
