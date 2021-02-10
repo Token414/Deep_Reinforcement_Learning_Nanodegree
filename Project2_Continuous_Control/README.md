@@ -2,9 +2,15 @@
 
 [image1]: https://user-images.githubusercontent.com/10624937/43851024-320ba930-9aff-11e8-8493-ee547c6af349.gif "Trained Agent"
 [image2]: https://user-images.githubusercontent.com/10624937/43851646-d899bf20-9b00-11e8-858c-29b5c2c94ccc.png "Crawler"
-
+[image3]: https://video.udacity-data.com/topher/2018/May/5b0c72f3_output/output.gif "Reacher arm"
 
 # Project 2: Continuous Control
+## Real-World Robotics
+Tha task for a robotic arm to reach a target is a real world problem. This could be programmed or even trained via machine learning and deep learning. Hence reinforcement learning could be a way to takle this problem. 
+
+![Reacher arm][image3]
+Training robot arem to reach a target location. ([SOURCE](https://youtu.be/ZVIxt2rt1_4))
+The accompanying research paper can be found [here](https://arxiv.org/pdf/1803.07067.pdf). 
 
 ### Introduction
 
