@@ -2,7 +2,7 @@
 
 [image1]: https://user-images.githubusercontent.com/10624937/43851024-320ba930-9aff-11e8-8493-ee547c6af349.gif "Trained Agent"
 [image2]: https://user-images.githubusercontent.com/10624937/43851646-d899bf20-9b00-11e8-858c-29b5c2c94ccc.png "Crawler"
-[image3]: https://video.udacity-data.com/topher/2018/May/5b0c72f3_output/output.gif "Reacher arm"
+[image3]: https://github.com/Token414/Deep_Reinforcement_Learning_Nanodegree/blob/dev-p2/Project2_Continuous_Control/plots/output.gif "Reacher arm"
 
 # Project 2: Continuous Control
 ## Real-World Robotics
